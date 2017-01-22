@@ -25,8 +25,12 @@ print('Modules loaded.')
 os.chdir("F:\\CODE\\Udacity-Self-Driving-Car\\Term-1\\Project-3")
 
 # ## Load the Data
-df = pd.read_csv('./data/data/driving_log.csv', header=0)
- 
+#  F:\CODE\Udacity-Self-Driving-Car\Term-1\Project-3\simulator-windows-64\training2
+#df = pd.read_csv('./data/data/driving_log.csv', header=0)
+df = pd.read_csv('F:\\CODE\\Udacity-Self-Driving-Car\\Term-1\\Project-3\\simulator-windows-64\\ALL\\driving_log.csv', header=0)
+
+#F:\CODE\Udacity-Self-Driving-Car\Term-1\Project-3\simulator-windows-64\ALL 
+
 print('csv loaded.')  
 
 #   center,left,right,steering,throttle,brake,speed
@@ -67,7 +71,9 @@ def cut_and_scale(img):
 #imgplot = plt.imshow(cut_and_scale(img), cmap='gray')    
 
 for i in range(0, x):
-    path = './data/data/' + df['center'][i]
+#    path = './data/data/' + df['center'][i]  #this was for original
+    path = df['center'][i]  #this was for original
+    
     img = cv2.imread(path,0)   
     #cv2.imwrite('test-data-cut_and_scale.jpg',cut_and_scale(img))
     img = cut_and_scale(img)

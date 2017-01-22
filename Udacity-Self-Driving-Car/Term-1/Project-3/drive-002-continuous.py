@@ -7,6 +7,7 @@ import socketio
 import eventlet
 import eventlet.wsgi
 import time
+from decimal import *
 from PIL import Image
 from PIL import ImageOps
 from flask import Flask, render_template
@@ -42,6 +43,14 @@ def cut_and_scale(img):
     img = img[60:160, 0:320]
     img = cv2.resize(img,(160, 50), interpolation = cv2.INTER_CUBIC)
     return img
+    
+def speed_control(speed):
+    #print("speed:")
+    #print(speed)
+    throttle = 0.2
+    if Decimal(speed) > Decimal("5"):
+        throttle = 0.0
+    return throttle
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -128,7 +137,8 @@ def telemetry(sid, data):
     #print("steering_angle from prediction")
     #print(steering_angle)
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.1
+#    throttle = 0.1
+    throttle = speed_control(speed)
     
     #steering_angle = float(0.999)
     #print(steering_angle, throttle)

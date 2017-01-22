@@ -15,18 +15,29 @@ from keras.callbacks import BaseLogger
 
 save_model_and_data = True
 
-print('Modules loaded.')
-os.chdir("F:\\CODE\\Udacity-Self-Driving-Car\\Term-1\\Project-3")
+# ====================================================
+# ====================================================
+# ====================================================
+batch = 20
+epoch = 4
+validation = 0.1
+#use_model_version = 3  # it was not good at all 
+#use_model_version = 5  # it was not good at all had batch 20 and 3 epochs validation 0.2
+#use_model_version = 1 # was not good at all wiht batch 20 and 2 epochs and validation o.1
+#use_model_version = 2  # did not work at all  batch 20 and 2 epochs and validation o.1
+#use_model_version = 6  # and reduced training set  batch 10 epoch 1 valid 0.1 
+#use_model_version = 5  # and reduced training set  batch 10 epoch 1 valid 0.1
+use_model_version = 8
 
 # ====================================================
 # ====================================================
 # ====================================================
-batch = 10
-epoch = 1
-validation = 0.1
-# ====================================================
-# ====================================================
-# ====================================================
+
+print('Modules loaded.')
+os.chdir("F:\\CODE\\Udacity-Self-Driving-Car\\Term-1\\Project-3")
+
+
+
 
 
 print("--------------- LOAD -----------------")
@@ -38,7 +49,9 @@ X_train = myarray
 # TODO: Load the label data to the variable y_train
 #y_train = np.asarray(str(df['steering'].values))
 
-df = pd.read_csv('./data/data/driving_log.csv', header=0)
+#df = pd.read_csv('./data/data/driving_log.csv', header=0)
+df = pd.read_csv('F:\\CODE\\Udacity-Self-Driving-Car\\Term-1\\Project-3\\simulator-windows-64\\ALL\\driving_log.csv', header=0)
+ 
  
 print('csv loaded.')  
 
@@ -48,7 +61,7 @@ df = df[['center', 'steering']]
 #yyy = np.asarray(df['steering'].values)
 
 y_train = df['steering'].values.tolist()
-print(y_train)
+#print(y_train)
 #y_train = df['steering']
 
 #print(type(y_train))
@@ -92,30 +105,173 @@ print("--------------- BUILDING THE MODEL  -----------------")
 # TODO: Build a model
 model = None
 model = Sequential()
-#model.add(Convolution2D(124, 3, 3, input_shape=(160, 320, 1)))
-model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
-model.add(MaxPooling2D((2, 2)))
-model.add(Dropout(0.5))
-#model.add(Activation('relu'))
-model.add(Activation('tanh'))
-model.add(Flatten())
-#model.add(Dense(128))
-#model.add(Dense(384))
-model.add(Dense(124))
-#model.add(Activation('relu'))
-model.add(Activation('tanh'))
-#model.add(Dense(43))
-model.add(Dense(62))
-#model.add(Activation('softmax'))
-model.add(Activation('tanh'))
 
-#model.add(Dense(31, init='normal', activation='relu'))
-model.add(Dense(1))
+if use_model_version == 1: 
+    print("using model 1")
+    #model.add(Convolution2D(124, 3, 3, input_shape=(160, 320, 1)))
+    model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.5))
+    #model.add(Activation('relu'))
+    model.add(Activation('tanh'))
+    model.add(Flatten())
+    #model.add(Dense(128))
+    #model.add(Dense(384))
+    model.add(Dense(124))
+    #model.add(Activation('relu'))
+    model.add(Activation('tanh'))
+    #model.add(Dense(43))
+    model.add(Dense(62))
+    #model.add(Activation('softmax'))
+    model.add(Activation('tanh'))
+    
+    #model.add(Dense(31, init='normal', activation='relu'))
+    model.add(Dense(1))
+    
+    #model.add(Dense(1, init='uniform'))
+    model.add(Activation('linear'))
 
-#model.add(Dense(1, init='uniform'))
-model.add(Activation('linear'))
+ 
+    
+#softmax
+#softplus
+#softsign
+#relu
+#tanh
+#sigmoid
+#hard_sigmoid
+#linear
 
+if use_model_version == 2: 
 
+    model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.5))
+    model.add(Activation('sigmoid'))
+    model.add(Flatten())
+    model.add(Dense(124))
+    model.add(Activation('sigmoid'))
+    model.add(Dense(62))
+    model.add(Activation('sigmoid'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))  
+
+if use_model_version == 3: 
+
+    model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+    model.add(Dense(124))
+    model.add(Activation('relu'))
+    model.add(Dense(62))
+    model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))      
+    
+if use_model_version == 4: 
+
+    model.add(Convolution2D(300, 4, 4, input_shape=(50, 160, 1)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+    model.add(Dense(200))
+    model.add(Activation('relu'))
+    model.add(Dense(100))
+    model.add(Activation('relu'))
+    model.add(Dense(50))
+    model.add(Activation('linear'))    
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))    # this cannot work unless we substract -0.5
+    
+if use_model_version == 5: 
+
+    model.add(Convolution2D(300, 4, 4, input_shape=(50, 160, 1)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+    model.add(Dense(200))
+    model.add(Activation('relu'))
+    model.add(Dense(100))
+    model.add(Activation('relu'))
+    model.add(Dense(50))
+    model.add(Activation('tanh'))    
+    model.add(Dense(1))
+    model.add(Activation('tanh'))    
+    
+    
+if use_model_version == 6:     
+    print("using model 6")
+    model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
+    print(model.output_shape)
+    model.add(MaxPooling2D((2, 2)))
+    print(model.output_shape)
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+    print(model.output_shape)
+    model.add(Dense(124))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(62))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(1))
+    model.add(Activation('tanh'))
+    print(model.output_shape)
+    
+    
+if use_model_version == 7:     
+    print("using model 7")
+    model.add(Convolution2D(124, 3, 3, input_shape=(50, 160, 1)))
+    print(model.output_shape)
+    model.add(MaxPooling2D((2, 2)))
+    print(model.output_shape)
+    
+    model.add(Convolution2D(62, 3, 3, border_mode='same'))
+    model.add(MaxPooling2D((2, 2)))
+    print(model.output_shape)
+    model.add(Dropout(0.5))
+#    model.add(Activation('relu'))
+    model.add(Flatten())
+    print(model.output_shape)
+    model.add(Dense(1000))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(50))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(1))
+    model.add(Activation('tanh'))
+    print(model.output_shape)   
+    
+if use_model_version == 8:     
+    print("using model 8")
+    model.add(Convolution2D(64, 3, 3, input_shape=(50, 160, 1)))
+    print(model.output_shape)
+    model.add(MaxPooling2D((2, 2)))
+    print(model.output_shape)
+    
+    model.add(Convolution2D(32, 3, 3, border_mode='same'))
+    model.add(MaxPooling2D((2, 2)))
+    print(model.output_shape)
+    model.add(Dropout(0.5))
+#    model.add(Activation('relu'))
+    model.add(Flatten())
+    print(model.output_shape)
+    model.add(Dense(1000))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(50))
+    model.add(Activation('relu'))
+    print(model.output_shape)
+    model.add(Dense(1))
+    model.add(Activation('tanh'))
+    print(model.output_shape)  
+    
 if save_model_and_data:
 
     print("--------------- Save model architecture  -----------------")
@@ -125,22 +281,11 @@ if save_model_and_data:
     f.close()
     
     print("--------------- TRAINING THE MODEL  -----------------")
-    # TODO: Compile and train the model
-    #model.compile('adam', 'categorical_crossentropy', ['accuracy'])
-#    model.compile(loss='mean_squared_error', optimizer='adam')
-    model.compile(loss='mse', optimizer='rmsprop')
-    #history = model.fit(X_normalized, y_one_hot, nb_epoch=10, validation_split=0.2)
-    
-    #history = model.fit(X_train, y_one_hot, batch_size=20, nb_epoch=3, validation_split=0.2)
-   # history = model.fit(X_train, y_one_hot, batch_size=batch, nb_epoch=epoch, validation_split=validation)
-    
-    #estimator = KerasRegressor(build_fn=model, nb_epoch=1, batch_size=10, verbose=1)
-    print(type(X_train))
-    print(type(y_train))
-    model.fit(X_train, y_train, batch_size=25, nb_epoch=3, verbose=1, callbacks=[BaseLogger()], validation_split=0.1)
 
-    
-    
+#    model.compile(loss='mse', optimizer='rmsprop')
+    model.compile(loss='mse', optimizer='adam')
+    model.fit(X_train, y_train, batch_size=batch, nb_epoch=epoch, verbose=1, callbacks=[BaseLogger()], validation_split=validation)
+
     print("--------------- Save weights  -----------------")
     model.save_weights('model.h5')
 print("--------------- ALL DONE  -----------------")
