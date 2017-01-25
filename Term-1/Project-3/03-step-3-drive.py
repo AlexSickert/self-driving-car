@@ -280,7 +280,7 @@ def speed_control(speed):
     #print("speed:")
     #print(speed)
     throttle = 0.2
-    if Decimal(speed) > Decimal("20"):
+    if Decimal(speed) > Decimal("10"):
         throttle = 0.0
     return throttle
 

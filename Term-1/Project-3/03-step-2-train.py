@@ -258,11 +258,11 @@ if use_model_version == 8:
     print(model.output_shape)
     model.add(MaxPooling2D((2, 2)))
     print(model.output_shape)
-    
+    model.add(Dropout(0.3))
     model.add(Convolution2D(32, 3, 3, border_mode='same'))
     model.add(MaxPooling2D((2, 2)))
     print(model.output_shape)
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.3))
 #    model.add(Activation('relu'))
     model.add(Flatten())
     print(model.output_shape)
