@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------
 # function to calibrate a camera based on test images
 # ------------------------------------------------------------------------   
-import os
+
 import numpy as np
 import cv2
 import glob
@@ -111,9 +111,4 @@ def test_calibration():
     plt.show()
     
     
-
-working_dir = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/calibration_test"
-os.chdir(working_dir)    
-test_calibration()
-
 
