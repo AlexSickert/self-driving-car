@@ -53,6 +53,11 @@ plt.show()
 warp_parameter = dis.get_warp_params()
 #img = to_geyscale(img_corrected)
 img = dis.warp(img, warp_parameter)
+
+# save the image in a variable for for testing purposes
+
+warped_binary_image = img
+
 plt.imshow(img, cmap='gray')
 plt.show()
 warp_parameter = dis.get_unwarp_params()
