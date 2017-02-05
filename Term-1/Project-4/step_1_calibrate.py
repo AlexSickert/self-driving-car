@@ -9,7 +9,7 @@ import glob
 import matplotlib.pyplot as plt
 import pickle
 
-def calibrate(folder_calibration, test_image_path):
+def calibrate(folder_calibration, test_image_path, show_images=False):
     
     #%matplotlib qt
     
@@ -44,10 +44,10 @@ def calibrate(folder_calibration, test_image_path):
             #cv2.imshow('img', img)
             #cv2.waitKey(500)
             
-            
-            plt.imshow(img)
-            #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-            plt.show()
+            if show_images == True:
+                plt.imshow(img)
+                #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+                plt.show()
             
             
     
