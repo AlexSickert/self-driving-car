@@ -100,14 +100,14 @@ def test_calibration():
     img = cv2.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/calibration_test/test_image.jpg")
 
     print("show un-corrected version of image")
-    plt.imshow(img)
+    plt.imshow(img, cmap='gray')
     plt.show()
     
     print("correct an image")
     img_corrected = un_distort(img, params)
     
     print("show corrected version of image")
-    plt.imshow(img_corrected)
+    plt.imshow(img_corrected, cmap='gray')
     plt.show()
     
     
