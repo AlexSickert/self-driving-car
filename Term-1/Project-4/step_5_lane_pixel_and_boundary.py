@@ -7,7 +7,7 @@ def find_lane(binary_warped):
     
     # Assuming you have created a warped binary image called "binary_warped"
     # Take a histogram of the bottom half of the image
-    histogram = np.sum(binary_warped[binary_warped.shape[0]/2:,:], axis=0)
+    histogram = np.sum(binary_warped[int(binary_warped.shape[0]/2):,:], axis=0)
     # Create an output image to draw on and  visualize the result
     out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
     # Find the peak of the left and right halves of the histogram
@@ -89,11 +89,13 @@ def find_lane(binary_warped):
     
     out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
     out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
-    plt.imshow(out_img)
-    plt.plot(fit_leftx, fity, color='yellow')
-    plt.plot(fit_rightx, fity, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
+    
+#
+#    plt.imshow(out_img)
+#    plt.plot(fit_leftx, fity, color='yellow')
+#    plt.plot(fit_rightx, fity, color='yellow')
+#    plt.xlim(0, 1280)
+#    plt.ylim(720, 0)
     
     # now we calculate the polyfit in meters 
     
@@ -110,6 +112,10 @@ def find_lane(binary_warped):
     ret = {}
     ret["left_fit"] = left_fit 
     ret["right_fit"] = right_fit
+    ret["fit_leftx"] = fit_leftx
+    ret["fit_rightx"] = fit_rightx
+    ret["fity"] = fity
+
 
     return ret
 
@@ -192,4 +198,4 @@ def test():
     
     
     
-polinomials = test()
+#polinomials = test()

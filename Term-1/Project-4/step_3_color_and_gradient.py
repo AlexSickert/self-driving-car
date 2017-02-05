@@ -153,5 +153,5 @@ def test():
     plt.imshow(combined_binary, cmap='gray')
     plt.show()
             
-test()
+#test()
     

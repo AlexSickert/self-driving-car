@@ -38,7 +38,8 @@ def calibrate(folder_calibration, test_image_path, show_images=False):
             imgpoints.append(corners)
     
             # Draw and display the corners
-            cv2.drawChessboardCorners(img, (8,6), corners, ret)
+#            cv2.drawChessboardCorners(img, (8,6), corners, ret)
+            cv2.drawChessboardCorners(img, (9,6), corners, ret)
             #write_name = 'corners_found'+str(idx)+'.jpg'
             #cv2.imwrite(write_name, img)
             #cv2.imshow('img', img)
@@ -95,7 +96,7 @@ def test_calibration():
     test_image_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/calibration_test/test_image.jpg"
     
     print("start calibration")
-    params = calibrate(folder_calibration, test_image_path)
+    params = calibrate(folder_calibration, test_image_path, show_images=True)
     print("calibration done")
     img = cv2.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/calibration_test/test_image.jpg")
 
@@ -111,4 +112,4 @@ def test_calibration():
     plt.show()
     
     
-
+#test_calibration()
