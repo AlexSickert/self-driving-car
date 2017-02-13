@@ -8,7 +8,7 @@ def calculate_radius(left_fit, right_fit):
     left_curverad = ((1 + (2*left_fit[0]*y_eval + left_fit[1])**2)**1.5) / np.absolute(2*left_fit[0])
     right_curverad = ((1 + (2*right_fit[0]*y_eval + right_fit[1])**2)**1.5) / np.absolute(2*right_fit[0])
 #    print(left_curverad, right_curverad)
-    txt = "radius left lane (m): " + str(int(left_curverad)) + " radius right lane (m): " + str(int(left_curverad))
+    txt = "radius left/right lane (m): " + str(int(left_curverad)) + "/" + str(int(left_curverad))
     return txt
 
 def test(left_fit, right_fit):

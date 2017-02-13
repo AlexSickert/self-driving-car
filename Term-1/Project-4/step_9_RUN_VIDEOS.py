@@ -1,6 +1,7 @@
 import os
 import step_1_calibrate as cal
 import step_2_distortion_correction as dis
+import step_4_perspective_transform as pest
 import step_3_color_and_gradient as colgrad
 import step_5_lane_pixel_and_boundary as lpbo
 import step_6_curvature as cur
@@ -14,6 +15,9 @@ import pickle
 
 video_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/CarND-Advanced-Lane-Lines-master/project_video.mp4"
 
+#video_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/CarND-Advanced-Lane-Lines-master/challenge_video.mp4"
+
+#video_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/CarND-Advanced-Lane-Lines-master/harder_challenge_video.mp4"
 
 working_dir = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-4/"
 os.chdir(working_dir)    
@@ -58,19 +62,20 @@ def process_image(img):
     img_corrected = cal.un_distort(img, params)
 
     # perspective transform
-    warp_parameter = dis.get_warp_params()
+    warp_parameter = pest.get_warp_params()
     #img = to_geyscale(img_corrected)
-    img = dis.warp(img, warp_parameter)
+    img = pest.warp(img, warp_parameter)
     
     # save the image in a variable for for testing purposes
     warped_binary_image = img
-    un_warp_parameter = dis.get_unwarp_params()
-    img_unwarped = dis.warp(img, un_warp_parameter)
+    un_warp_parameter = pest.get_unwarp_params()
+    img_unwarped = pest.warp(img, un_warp_parameter)
     polinomials = lpbo.find_lane(warped_binary_image)
 #    cur.calculate_radius(polinomials["left_fit"], polinomials["right_fit"])
     
     text = cur.calculate_radius(polinomials["left_fit"], polinomials["right_fit"])
-    
+    text += " position (m): " + str(polinomials["delta_of_car"])
+    log_text(text)
     original_image = cur.write_text_on_image(original_image, text)    
     
     #draw lines on the original image
@@ -80,7 +85,11 @@ def process_image(img):
 
     return combined_result
 
-
+def log_text(t):
+    with open("log.txt", "a") as myfile:
+        myfile.write(t)
+        myfile.write("\n")
+        
    
 white_output = 'result-1.mp4'
 clip1 = VideoFileClip(video_path)

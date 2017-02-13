@@ -73,16 +73,7 @@ def find_lane(binary_warped):
     left_fit = np.polyfit(lefty, leftx, 2)
     right_fit = np.polyfit(righty, rightx, 2)
     
-#    ret = {}
-#    ret["img"] = out_img
-#    ret["left_fit"] = left_fit 
-#    ret["right_fit"] = right_fit 
-    
-#    return ret
 
-
-#def visualize(out_img, left_fit, right_fit):
-    # Generate x and y values for plotting
     fity = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
     fit_leftx = left_fit[0]*fity**2 + left_fit[1]*fity + left_fit[2]
     fit_rightx = right_fit[0]*fity**2 + right_fit[1]*fity + right_fit[2]
@@ -90,39 +81,33 @@ def find_lane(binary_warped):
     out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
     out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
     
-#
-#    plt.imshow(out_img)
-#    plt.plot(fit_leftx, fity, color='yellow')
-#    plt.plot(fit_rightx, fity, color='yellow')
-#    plt.xlim(0, 1280)
-#    plt.ylim(720, 0)
     
     # now we calculate the polyfit in meters 
     
     ym_per_pix = 30/720 # meters per pixel in y dimension
     xm_per_pix = 3.7/700 # meters per pixel in x dimension
 
-## Fit new polynomials to x,y in world space
-#left_fit_cr = np.polyfit(ploty*ym_per_pix, leftx*xm_per_pix, 2)
-#right_fit_cr = np.polyfit(ploty*ym_per_pix, rightx*xm_per_pix, 2)
-    
+
     left_fit = np.polyfit(lefty * ym_per_pix, leftx * xm_per_pix, 2)
     right_fit = np.polyfit(righty * ym_per_pix, rightx * xm_per_pix, 2)
     
+    
+    #calculate position of car relative to lanes    
+    position_of_car = (rightx_base - leftx_base) / 2 + leftx_base
+    # calculate shift from midpoint and convert pixels to meters
+    delta_of_car = (midpoint - position_of_car) * xm_per_pix
+         
     ret = {}
     ret["left_fit"] = left_fit 
     ret["right_fit"] = right_fit
     ret["fit_leftx"] = fit_leftx
     ret["fit_rightx"] = fit_rightx
     ret["fity"] = fity
+    ret["delta_of_car"] = delta_of_car
 
 
     return ret
 
-#And the output should look something like this:
-#
-#Skip the sliding windows step once you know where the lines are
-#Now you know where the lines are you have a fit! In the next frame of video you don't need to do a blind search again, but instead you can just search in a margin around the previous line position like this:
 
     
 def subsequent_images():
@@ -180,22 +165,4 @@ def visualize_subsequent_image():
 
 
     
-def test():
-#    warped_binary_image
     
-    polynomials = find_lane(warped_binary_image) 
-    
-    return polynomials
-    
-#    print(polynomials)
-    
-#    array = find_lane(warped_binary_image) 
-#    
-#    # now visualize
-#    visualize(array["img"] , array["left_fit"], array["right_fit"] )
-#    
-
-    
-    
-    
-#polinomials = test()
