@@ -7,7 +7,7 @@ import pickle
 import cv2
 from scipy.ndimage.measurements import label
 import sys
-
+from sklearn import svm
 
 
 
@@ -37,7 +37,7 @@ train_data = {}
 if os.path.isfile("./train_data.p"):
     # load the file
     print("using data from existing pickle file")
-    train_data = pickle.load( open( "train_data.p", "rb" ) )
+    train_data = pickle.load( open( "./train_data.p", "rb" ) )
 else:
     print("loading train data from original image files")
     for root, subdirs, files in os.walk(walk_dir):
@@ -72,18 +72,36 @@ else:
             
             # put it into the feature array
             
+    # check data
+    print("counter_other {}".format(counter_other))
+    print("counter_vehicles {}".format(counter_vehicles))
+
     # save feature array
     train_data['X'] = X
     train_data['Y'] = Y
+    print("writing data to pickle file")
     pickle.dump( train_data, open( "./train_data.p", "wb" ) )
     
 
+#check
+X = train_data['X']
+Y = train_data['Y']
+
+print("X shape {}".format(len(X)))
+print("Y shape {}".format(len(Y)))
+
+
 # train
+print("train...")
+clf = svm.SVC()
+clf.fit(X, Y)  
 
-# save model
+SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
 
-print("counter_other {}".format(counter_other))
-print("counter_vehicles {}".format(counter_vehicles))
+print("training done")
 
 print("done - end of program")
 
