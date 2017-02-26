@@ -1,22 +1,11 @@
-import os as os
-import image_processing as ip
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import numpy as np
-import pickle
 import cv2
 from scipy.ndimage.measurements import label
-import sys
-
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-import numpy as np
-import cv2
-import glob
-import time
-from sklearn.svm import LinearSVC
-from sklearn.preprocessing import StandardScaler
 from skimage.feature import hog
+import training as trn
+import image_processing as proc
+import sliding_window as slw
+import alsi_util as util
 
 #==============================================================================
 #  convert the image into a feature set
@@ -68,12 +57,9 @@ def image_to_featureset(image, color_space, s, hog_channel):
     
     return all_features
     
+#=============================================================================
 
 
-def get_array_shape(array):
-    
-    x = np.array(array)
-    print(x.shape)
 
 #============================================================================= 
     
@@ -125,7 +111,7 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
 
 
         
-# =============================================================================
+#=============================================================================
 
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
                         vis=False, feature_vec=True):
@@ -146,8 +132,65 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
                        visualise=vis, feature_vector=feature_vec)
         return features
 
+#=============================================================================
 
+def draw_labeled_bboxes(img, heatmap):
+    
+    labels = label(heatmap)
+    
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (255,0,0), 6)
+    # Return the image
+    return img
+#=============================================================================
+# this method processes one image
 
+def process_image(img): 
+    
+    sliding_sale = [64, 128, 256]
+    boxlist = []
+    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
+    heatmap_threshold = 1
+    counter = 0
+    
+    for s in sliding_sale:
+        print("sliding_sale: " + str(s))
+        crop_arr = slw.slide_window(img,x_start_stop=[None, None], y_start_stop=[300, None], xy_window=(s, s), xy_overlap=(0.5, 0.5))
+        counter = 0
+        
+        for x in crop_arr:
+            counter += 1
+            cropped_image = slw.crop_image(img, x)
+            res = trn.predict(cropped_image)
+            if str(res[0]) == "vehicle":
+                boxlist.append(x)
+                counter += 1
+
+    print("boxes with cars found: " + str(counter))
+    #by now we have identified all the boxes that contain a car
+    # now we add the boxes to a heatmap
+    for b in boxlist:
+#        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+        heatmap[b[1]:b[3], b[0]:b[2]] += 1
+               
+    heatmap[heatmap <= heatmap_threshold] = 0
+          
+    res_image = proc.draw_labeled_bboxes(img, heatmap)
+    
+#    cv2.imwrite('result_output.jpg',res_image)
+    util.show_image_from_image(res_image, "output")
+   
+
+#=============================================================================
 #
 ## Generate a random index to look at a car image
 #ind = np.random.randint(0, len(cars))
@@ -176,18 +219,18 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
 
 # =============================================================================
 
-# Define a function to return HOG features and visualization
-def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
-    if vis == True:
-        features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
-                                  visualise=True, feature_vector=False)
-        return features, hog_image
-    else:      
-        features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
-                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
-                       visualise=False, feature_vector=feature_vec)
-        return features
+## Define a function to return HOG features and visualization
+#def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
+#    if vis == True:
+#        features, hog_image = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+#                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+#                                  visualise=True, feature_vector=False)
+#        return features, hog_image
+#    else:      
+#        features = hog(img, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+#                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=False, 
+#                       visualise=False, feature_vector=feature_vec)
+#        return features
 
 
 

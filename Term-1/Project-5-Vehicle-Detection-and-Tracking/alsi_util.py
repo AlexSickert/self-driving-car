@@ -20,6 +20,12 @@ def show_image_from_image(image, text):
     plt.show()    
     
 #=============================================================================
+    
+def get_array_shape(array):
+    
+    x = np.array(array)
+    print(x.shape)
+#=============================================================================
 
 #show_image("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0010.png", "xxx")
 #show_image("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0011.png", "xxx")
