@@ -8,7 +8,10 @@ import cv2
 from scipy.ndimage.measurements import label
 import sys
 from sklearn import svm
-
+from sklearn.externals import joblib
+from sklearn.cross_validation import train_test_split
+import alsi_util as util
+import random as rnd
 
 
 # in order to train the SVM we need to convert the images the same way we would 
@@ -31,6 +34,7 @@ counter_other = 0
 
 X = []
 Y =[]
+info = []
 
 train_data = {}
 
@@ -50,7 +54,10 @@ else:
             if file_path.endswith(".png"):
             
                 # read the image
-                img = mpimg.imread(file_path)        
+                img = mpimg.imread(file_path)  
+                # save path so that we can later verify prediction
+                info.append(file_path)
+                
         #        img = cv2.imread(img_path)
             
         #        plt.imshow(img)
@@ -79,6 +86,7 @@ else:
     # save feature array
     train_data['X'] = X
     train_data['Y'] = Y
+    train_data['info'] = info         
     print("writing data to pickle file")
     pickle.dump( train_data, open( "./train_data.p", "wb" ) )
     
@@ -86,22 +94,44 @@ else:
 #check
 X = train_data['X']
 Y = train_data['Y']
+info = train_data['info']
 
 print("X shape {}".format(len(X)))
 print("Y shape {}".format(len(Y)))
+print("info shape {}".format(len(info)))
 
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 # train
-print("train...")
-clf = svm.SVC()
-clf.fit(X, Y)  
+if os.path.isfile("./model.pkl"):
+    print("use saved model")
+    clf = joblib.load('./model.pkl') 
+else:
+    
+    print("train...")
+    clf = svm.SVC()
+    clf.fit(X_train, y_train)  
+    print("training done. now saving the model")    
+    joblib.dump(clf, './model.pkl') 
 
-SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-    decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
-    max_iter=-1, probability=False, random_state=None, shrinking=True,
-    tol=0.001, verbose=False)
+# do some predictions
 
-print("training done")
+print("do some predictions")
+
+# take some of the original pictures convert them and predict outcome.
+# i do this as a smoke test if pipeline works
+
+for x in range(5):
+    r = rnd.randint(1, len(Y))
+    
+    path = info[r]
+    print(path)
+    img = mpimg.imread(path)  
+    features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
+    res = clf.predict(features)
+    print(res)    
+    util.show_image(path, res)
 
 print("done - end of program")
 
@@ -121,19 +151,6 @@ def data_look(car_list, notcar_list):
     data_dict["data_type"] = example_img.dtype
     # Return data_dict
     return data_dict
-
-
-
-# =============================================================================
-# train and test split
-
-# Split up data into randomized training and test sets
-#rand_state = np.random.randint(0, 100)
-#X_train, X_test, y_train, y_test = train_test_split(
-#    scaled_X, y, test_size=0.2, random_state=rand_state)
-
-
-
 
 
 
