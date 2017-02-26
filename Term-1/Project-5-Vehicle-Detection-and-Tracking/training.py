@@ -38,10 +38,10 @@ info = []
 
 train_data = {}
 
-if os.path.isfile("./train_data.p"):
+if os.path.isfile("./pickle_files/train_data.p"):
     # load the file
     print("using data from existing pickle file")
-    train_data = pickle.load( open( "./train_data.p", "rb" ) )
+    train_data = pickle.load( open( "./pickle_files/train_data.p", "rb" ) )
 else:
     print("loading train data from original image files")
     for root, subdirs, files in os.walk(walk_dir):
@@ -88,7 +88,7 @@ else:
     train_data['Y'] = Y
     train_data['info'] = info         
     print("writing data to pickle file")
-    pickle.dump( train_data, open( "./train_data.p", "wb" ) )
+    pickle.dump( train_data, open( "./pickle_files/train_data.p", "wb" ) )
     
 
 #check
@@ -104,56 +104,91 @@ print("info shape {}".format(len(info)))
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 # train
-if os.path.isfile("./model.pkl"):
+if os.path.isfile("./pickle_files/model.pkl"):
     print("use saved model")
-    clf = joblib.load('./model.pkl') 
+    clf = joblib.load('./pickle_files/model.pkl') 
+    
 else:
     
     print("train...")
     clf = svm.SVC()
     clf.fit(X_train, y_train)  
     print("training done. now saving the model")    
-    joblib.dump(clf, './model.pkl') 
+    joblib.dump(clf, './pickle_files/model.pkl') 
 
-# do some predictions
-
-print("do some predictions")
-
-# take some of the original pictures convert them and predict outcome.
-# i do this as a smoke test if pipeline works
-
-for x in range(5):
-    r = rnd.randint(1, len(Y))
+def check_accuracy():
     
-    path = info[r]
-    print(path)
-    img = mpimg.imread(path)  
+    print("check accuracy")
+    
+    print('Test Accuracy of SVC = ', clf.score(X_test, y_test))
+    #print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
+    #print('For labels: ', y_test[0:10])
+    
+    print("check_accuracy done")
+    
+def smoke_test():    
+    # do some predictions
+    print("do some predictions")
+    
+    # take some of the original pictures convert them and predict outcome.
+    # i do this as a "smoke test" if pipeline works
+    
+    for x in range(5):
+        r = rnd.randint(1, len(Y))
+        path = info[r]
+        img = mpimg.imread(path)  
+        features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
+        features = np.expand_dims(features, axis=0)
+        res = clf.predict(features) 
+        text = "Image shows " + str(res)
+        #print(res[0])
+        util.show_image(path, "Image shows " + text)
+    
+    print("smoke_test done")
+    
+# this will be used by the video stream
+def predict(img):
+    
     features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
-    res = clf.predict(features)
-    print(res)    
-    util.show_image(path, res)
-
-print("done - end of program")
-
-
-# Define a function to return some characteristics of the dataset 
-def data_look(car_list, notcar_list):
-    data_dict = {}
-    # Define a key in data_dict "n_cars" and store the number of car images
-    data_dict["n_cars"] = len(car_list)
-    # Define a key "n_notcars" and store the number of notcar images
-    data_dict["n_notcars"] = len(notcar_list)
-    # Read in a test image, either car or notcar
-    example_img = mpimg.imread(car_list[0])
-    # Define a key "image_shape" and store the test image shape 3-tuple
-    data_dict["image_shape"] = example_img.shape
-    # Define a key "data_type" and store the data type of the test image.
-    data_dict["data_type"] = example_img.dtype
-    # Return data_dict
-    return data_dict
-
-
-
-
+    features = np.expand_dims(features, axis=0)
+    res = clf.predict(features) 
     
+    return res
+
+
+#
+#
+#smoke_test()
+
+#
+#img = mpimg.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0011.png") 
+#features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
+#print(np.shape(features))
+#
+#img = mpimg.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/output_images/7['vehicle'].png") 
+#features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
+#print(np.shape(features))
+#predict(img)
+
+#
+## Define a function to return some characteristics of the dataset 
+#def data_look(car_list, notcar_list):
+#    data_dict = {}
+#    # Define a key in data_dict "n_cars" and store the number of car images
+#    data_dict["n_cars"] = len(car_list)
+#    # Define a key "n_notcars" and store the number of notcar images
+#    data_dict["n_notcars"] = len(notcar_list)
+#    # Read in a test image, either car or notcar
+#    example_img = mpimg.imread(car_list[0])
+#    # Define a key "image_shape" and store the test image shape 3-tuple
+#    data_dict["image_shape"] = example_img.shape
+#    # Define a key "data_type" and store the data type of the test image.
+#    data_dict["data_type"] = example_img.dtype
+#    # Return data_dict
+#    return data_dict
+#
+#
+#
+#
+#    
     

@@ -23,12 +23,15 @@ from skimage.feature import hog
 
 def image_to_featureset(image, color_space, s, hog_channel):
     
+    
+    image = cv2.resize(image, (s, s))
+    
     features_spatial = bin_spatial(image, color_space, size=(s, s))
     
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 #    plt.imshow(gray)
 #    plt.show()   
-    gray = cv2.resize(gray, (s, s))
+#    gray = cv2.resize(gray, (s, s))
     
     # Define HOG parameters
     orient = 9
@@ -38,6 +41,9 @@ def image_to_featureset(image, color_space, s, hog_channel):
     features_hog, hog_image = get_hog_features(gray, orient, 
                         pix_per_cell, cell_per_block, 
                         vis=True, feature_vec=False)
+    
+    
+    
     
     if hog_channel == 'ALL':
         hog_features = []

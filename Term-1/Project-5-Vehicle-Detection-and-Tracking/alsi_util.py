@@ -13,6 +13,12 @@ def show_image(file_path, text):
     plt.title(text)
     plt.show()
     
+def show_image_from_image(image, text):
+    
+    plt.imshow(image)  
+    plt.title(text)
+    plt.show()    
+    
 #=============================================================================
 
 #show_image("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0010.png", "xxx")
