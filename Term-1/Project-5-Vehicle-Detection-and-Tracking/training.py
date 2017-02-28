@@ -1,17 +1,16 @@
 import os as os
-import image_processing as ip
+import imageprocessing as ip
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import numpy as np
 import pickle
-import cv2
-from scipy.ndimage.measurements import label
-import sys
 from sklearn import svm
 from sklearn.externals import joblib
 from sklearn.cross_validation import train_test_split
 import alsi_util as util
 import random as rnd
+import sklearn.preprocessing as prep
+
+
 
 
 # in order to train the SVM we need to convert the images the same way we would 
@@ -100,6 +99,12 @@ print("X shape {}".format(len(X)))
 print("Y shape {}".format(len(Y)))
 print("info shape {}".format(len(info)))
 
+print("scaling")
+#scaling
+X_scaler = prep.StandardScaler().fit(X)
+# Apply the scaler to X
+X = X_scaler.transform(X)
+print("scaling done")
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
@@ -138,6 +143,7 @@ def smoke_test():
         path = info[r]
         img = mpimg.imread(path)  
         features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
+        features = X_scaler.transform(features)
         features = np.expand_dims(features, axis=0)
         res = clf.predict(features) 
         text = "Image shows " + str(res)
@@ -149,8 +155,9 @@ def smoke_test():
 # this will be used by the video stream
 def predict(img):
     
-    features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
+    features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')  
     features = np.expand_dims(features, axis=0)
+    features = X_scaler.transform(features)
     res = clf.predict(features) 
     
     return res
@@ -159,6 +166,7 @@ def predict(img):
 #
 #
 #smoke_test()
+
 
 #
 #img = mpimg.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0011.png") 
