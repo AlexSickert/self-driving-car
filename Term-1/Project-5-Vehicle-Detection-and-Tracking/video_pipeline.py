@@ -2,8 +2,12 @@
 import training as trn
 from moviepy.editor import *
 
-video_path = "./video/test_video.mp4"
-white_output = './video/test_video_output.mp4'
+#video_path = "./video/test_video.mp4"
+#white_output = './video/test_video_output.mp4'
+
+
+video_path = "./video/project_video.mp4"
+white_output = './video/project_video_output.mp4'
 
 
 clip1 = VideoFileClip(video_path)
