@@ -2,6 +2,7 @@
 import imageprocessing as proc
 import matplotlib.image as mpimg
 import alsi_util as util
+import training as trn
 
 # thif file is for testing the pipleine on images
 # then we use the pipeline and make it wokring on videos
@@ -15,7 +16,12 @@ print("load image")
 
 
 for i in range(1,6):
-    file_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/test_images/test" + str(i) + ".png"
+    file_path = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/test_images/test" + str(i) + ".jpg"
     img = mpimg.imread(file_path)  
+#    img = img * 255
     util.show_image_from_image(img, "input")
-    proc.process_image(img)
+    ret = trn.process_image(img)
+    util.show_image_from_image(ret, "output")
+    
+    output_path = "./output_images/" + str(i) + ".jpg"
+    util.save_image(ret, output_path)

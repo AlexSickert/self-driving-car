@@ -9,6 +9,7 @@ from sklearn.cross_validation import train_test_split
 import alsi_util as util
 import random as rnd
 import sklearn.preprocessing as prep
+import sliding_window as slw
 
 
 
@@ -63,6 +64,11 @@ else:
         #        plt.show()               
                 
                 # convert the image
+                
+                #scale image 
+#                print("scale max val: " + str(np.amax(img)))
+                img = img * 255
+                
                 features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
                 
                 X.append(features)
@@ -162,41 +168,48 @@ def predict(img):
     
     return res
 
+#=============================================================================
+# this method processes one image
 
-#
-#
-#smoke_test()
-
-
-#
-#img = mpimg.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/vehicles/GTI_Left/image0011.png") 
-#features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
-#print(np.shape(features))
-#
-#img = mpimg.imread("/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/output_images/7['vehicle'].png") 
-#features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
-#print(np.shape(features))
-#predict(img)
-
-#
-## Define a function to return some characteristics of the dataset 
-#def data_look(car_list, notcar_list):
-#    data_dict = {}
-#    # Define a key in data_dict "n_cars" and store the number of car images
-#    data_dict["n_cars"] = len(car_list)
-#    # Define a key "n_notcars" and store the number of notcar images
-#    data_dict["n_notcars"] = len(notcar_list)
-#    # Read in a test image, either car or notcar
-#    example_img = mpimg.imread(car_list[0])
-#    # Define a key "image_shape" and store the test image shape 3-tuple
-#    data_dict["image_shape"] = example_img.shape
-#    # Define a key "data_type" and store the data type of the test image.
-#    data_dict["data_type"] = example_img.dtype
-#    # Return data_dict
-#    return data_dict
-#
-#
-#
-#
-#    
+def process_image(img): 
     
+    print("max value: " + str(np.amax(img) )) 
+    
+#    if np.amax(img) > 1:
+#        img = img / 255
+    
+    sliding_sale = [64, 128, 256]
+    boxlist = []
+    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
+    heatmap_threshold = 1
+    counter = 0
+    
+    for s in sliding_sale:
+        print("sliding_sale: " + str(s))
+        crop_arr = slw.slide_window(img,x_start_stop=[None, None], y_start_stop=[300, None], xy_window=(s, s), xy_overlap=(0.5, 0.5))
+        counter = 0
+        
+        for x in crop_arr:
+            counter += 1
+            cropped_image = slw.crop_image(img, x)
+            res = predict(cropped_image)
+            if str(res[0]) == "vehicle":
+                boxlist.append(x)
+                counter += 1
+
+    print("boxes with cars found: " + str(counter))
+    #by now we have identified all the boxes that contain a car
+    # now we add the boxes to a heatmap
+    for b in boxlist:
+#        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+        heatmap[b[1]:b[3], b[0]:b[2]] += 1
+               
+    heatmap[heatmap <= heatmap_threshold] = 0
+          
+    res_image = ip.draw_labeled_bboxes(img, heatmap)
+    
+#    cv2.imwrite('result_output.jpg',res_image)
+#    util.show_image_from_image(res_image, "output")
+    
+    return res_image
+   

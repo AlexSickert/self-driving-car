@@ -2,7 +2,8 @@
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-
+import cv2
+import numpy as np
 
 #=============================================================================
 
@@ -15,10 +16,16 @@ def show_image(file_path, text):
     
 def show_image_from_image(image, text):
     
+    
+    
     plt.imshow(image)  
     plt.title(text)
     plt.show()    
     
+#=============================================================================
+
+def save_image(img, path):
+    cv2.imwrite(path,img)
 #=============================================================================
     
 def get_array_shape(array):

@@ -2,10 +2,9 @@ import numpy as np
 import cv2
 from scipy.ndimage.measurements import label
 from skimage.feature import hog
-import training as trn
+#import training as trn
 #import image_processing as proc
-import sliding_window as slw
-import alsi_util as util
+
 
 
 #==============================================================================
@@ -18,9 +17,7 @@ def image_to_featureset(image, color_space, s, hog_channel):
     features_spatial = bin_spatial(image, color_space, size=(s, s))
     
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-#    plt.imshow(gray)
-#    plt.show()   
-#    gray = cv2.resize(gray, (s, s))
+
     
     # Define HOG parameters
     orient = 9
@@ -96,18 +93,6 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
     # Return the individual histograms, bin_centers and feature vector
     return hist_features
 
-
-# =============================================================================
-# sacel the features  / normalize
-
-
-#    X = np.vstack((car_features, notcar_features)).astype(np.float64)                        
-#    # Fit a per-column scaler
-#    X_scaler = StandardScaler().fit(X)
-#    # Apply the scaler to X
-#    scaled_X = X_scaler.transform(X)
-
-
         
 #=============================================================================
 
@@ -149,44 +134,6 @@ def draw_labeled_bboxes(img, heatmap):
         cv2.rectangle(img, bbox[0], bbox[1], (255,0,0), 6)
     # Return the image
     return img
-#=============================================================================
-# this method processes one image
-
-def process_image(img): 
-    
-    sliding_sale = [64, 128, 256]
-    boxlist = []
-    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
-    heatmap_threshold = 1
-    counter = 0
-    
-    for s in sliding_sale:
-        print("sliding_sale: " + str(s))
-        crop_arr = slw.slide_window(img,x_start_stop=[None, None], y_start_stop=[300, None], xy_window=(s, s), xy_overlap=(0.5, 0.5))
-        counter = 0
-        
-        for x in crop_arr:
-            counter += 1
-            cropped_image = slw.crop_image(img, x)
-            res = trn.predict(cropped_image)
-            if str(res[0]) == "vehicle":
-                boxlist.append(x)
-                counter += 1
-
-    print("boxes with cars found: " + str(counter))
-    #by now we have identified all the boxes that contain a car
-    # now we add the boxes to a heatmap
-    for b in boxlist:
-#        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
-        heatmap[b[1]:b[3], b[0]:b[2]] += 1
-               
-    heatmap[heatmap <= heatmap_threshold] = 0
-          
-    res_image = draw_labeled_bboxes(img, heatmap)
-    
-#    cv2.imwrite('result_output.jpg',res_image)
-    util.show_image_from_image(res_image, "output")
-   
 
 #=============================================================================
 #
