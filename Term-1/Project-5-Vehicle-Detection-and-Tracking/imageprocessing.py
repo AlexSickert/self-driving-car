@@ -16,7 +16,7 @@ def image_to_featureset(image, color_space, s, hog_channel):
     
     features_spatial = bin_spatial(image, color_space, size=(s, s))
     
-    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+#    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     
     # Define HOG parameters
@@ -24,9 +24,9 @@ def image_to_featureset(image, color_space, s, hog_channel):
     pix_per_cell = 8
     cell_per_block = 2
     # Call our function with vis=True to see an image output
-    features_hog, hog_image = get_hog_features(gray, orient, 
-                        pix_per_cell, cell_per_block, 
-                        vis=True, feature_vec=False)
+#    features_hog, hog_image = get_hog_features(gray, orient, 
+#                        pix_per_cell, cell_per_block, 
+#                        vis=True, feature_vec=False)
     
     
     if hog_channel == 'ALL':
@@ -48,7 +48,8 @@ def image_to_featureset(image, color_space, s, hog_channel):
 #    plt.imshow(hog_image)
 #    plt.show() 
         
-    all_features = np.concatenate((features_spatial, hog_features))
+#    all_features = np.concatenate((features_spatial, hog_features))
+    all_features = hog_features
     
     return all_features
     

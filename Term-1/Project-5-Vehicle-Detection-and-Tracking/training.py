@@ -10,8 +10,7 @@ import alsi_util as util
 import random as rnd
 import sklearn.preprocessing as prep
 import sliding_window as slw
-
-
+from sklearn.utils import shuffle
 
 
 # in order to train the SVM we need to convert the images the same way we would 
@@ -23,6 +22,12 @@ import sliding_window as slw
 #     - train the support vector machine
      
 
+#==============================================================================
+color_space = "HLS"# already tried RGB
+image_size = 64
+hog_channel = 1   # already tried: 2
+
+#==============================================================================
 # base directory where we hold all files for training and test
 walk_dir = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/"
 counter = 0
@@ -58,18 +63,16 @@ else:
                 # save path so that we can later verify prediction
                 info.append(file_path)
                 
-        #        img = cv2.imread(img_path)
-            
+        #        img = cv2.imread(img_path)            
         #        plt.imshow(img)
         #        plt.show()               
                 
-                # convert the image
-                
+                # convert the image                
                 #scale image 
-#                print("scale max val: " + str(np.amax(img)))
+#               print("scale max val: " + str(np.amax(img)))
                 img = img * 255
                 
-                features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')
+                features = ip.image_to_featureset(img, color_space, image_size, hog_channel)
                 
                 X.append(features)
                 
@@ -112,6 +115,9 @@ X_scaler = prep.StandardScaler().fit(X)
 X = X_scaler.transform(X)
 print("scaling done")
 
+# shuffle
+X, Y = shuffle(X, Y, random_state=0)
+
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 # train
@@ -127,6 +133,8 @@ else:
     print("training done. now saving the model")    
     joblib.dump(clf, './pickle_files/model.pkl') 
 
+
+#=============================================================================
 def check_accuracy():
     
     print("check accuracy")
@@ -136,7 +144,8 @@ def check_accuracy():
     #print('For labels: ', y_test[0:10])
     
     print("check_accuracy done")
-    
+
+#=============================================================================    
 def smoke_test():    
     # do some predictions
     print("do some predictions")
@@ -148,8 +157,10 @@ def smoke_test():
         r = rnd.randint(1, len(Y))
         path = info[r]
         img = mpimg.imread(path)  
-        features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')    
+        features = ip.image_to_featureset(img, color_space, image_size, hog_channel) 
+        
         features = X_scaler.transform(features)
+        print("length of featureset = " + str(len(features)))
         features = np.expand_dims(features, axis=0)
         res = clf.predict(features) 
         text = "Image shows " + str(res)
@@ -157,11 +168,13 @@ def smoke_test():
         util.show_image(path, "Image shows " + text)
     
     print("smoke_test done")
-    
+
+#smoke_test()
+#=============================================================================
 # this will be used by the video stream
 def predict(img):
-    
-    features = ip.image_to_featureset(img, 'RGB', 32, 'ALL')  
+    # RGB, HLS
+    features = ip.image_to_featureset(img, color_space, image_size, hog_channel)  
     features = np.expand_dims(features, axis=0)
     features = X_scaler.transform(features)
     res = clf.predict(features) 
@@ -181,7 +194,7 @@ def process_image(img):
     sliding_sale = [64, 128, 256]
     boxlist = []
     heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
-    heatmap_threshold = 1
+    heatmap_threshold = 0
     counter = 0
     
     for s in sliding_sale:
@@ -212,4 +225,82 @@ def process_image(img):
 #    util.show_image_from_image(res_image, "output")
     
     return res_image
+
+
+
+#=============================================================================
+# this method processes one image
+#==============================================================================
+def process_video(img): 
+    
+#    print("max value: " + str(np.amax(img) )) 
+    
+#    if np.amax(img) > 1:
+#        img = img / 255
+    
+    sliding_sale = [64, 128, 256]
+    boxlist = []
+    heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
+    heatmap_threshold = 12  #because we measure across several images
+    counter = 0
+    
+    for s in sliding_sale:
+#        print("sliding_sale: " + str(s))
+        crop_arr = slw.slide_window(img,x_start_stop=[None, None], y_start_stop=[300, None], xy_window=(s, s), xy_overlap=(0.5, 0.5))
+        counter = 0
+        
+        for x in crop_arr:
+            counter += 1
+            cropped_image = slw.crop_image(img, x)
+            res = predict(cropped_image)
+            if str(res[0]) == "vehicle":
+                boxlist.append(x)
+                counter += 1
+    
+    insert_boxlist(boxlist)
+    
+    #by now we have identified all the boxes that contain a car
+    # now we add the boxes to a heatmap but before we do this we aggregate
+    # the boxlists across several images to have a smoother vizualtionation
+    # and to get rid of false positives
+    
+    boxlist = get_consolidated_boxlist()
+    
+    for b in boxlist:
+#        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+        heatmap[b[1]:b[3], b[0]:b[2]] += 1
+               
+    heatmap[heatmap <= heatmap_threshold] = 0
+          
+    res_image = ip.draw_labeled_bboxes(img, heatmap)
+    
+#    cv2.imwrite('result_output.jpg',res_image)
+#    util.show_image_from_image(res_image, "output")
+    
+    return res_image
+#==============================================================================
+# we create something like a queue to store heatmaps across several images
+
+boxlists = []
+boxlist_length = 6
+
+def insert_boxlist(b):
+    global boxlists
+    
+    if len(boxlists) > boxlist_length:  
+#        print("removing. lenght is " + str(len(boxlists)))
+        boxlists.pop()
+        
+    boxlists.insert(0,b)
+
+def get_consolidated_boxlist():
+    boxlist_consolidated = []
+    for boxlist in boxlists:
+        for b in boxlist:
+            boxlist_consolidated.append(b)
+    return boxlist_consolidated
+        
+    
+
+#==============================================================================
    
