@@ -12,22 +12,14 @@ import sklearn.preprocessing as prep
 import sliding_window as slw
 from sklearn.utils import shuffle
 
-
-# in order to train the SVM we need to convert the images the same way we would 
-# later convert the video image. The steps we perform here are:
-#     - loop through all filders and files in the training set
-#     - convert each image into a feature set but apply certain filters a
-#       and modifications to it
-#     - create a big array that holds all feature sets
-#     - train the support vector machine
-     
-
 #==============================================================================
+
 color_space = "HLS"# already tried RGB
-image_size = 64
-hog_channel = 1   # already tried: 2
+image_size = 32
+hog_channel = 2   # already tried: 2
 
 #==============================================================================
+
 # base directory where we hold all files for training and test
 walk_dir = "/home/alex/CODE/Udacity-Self-Driving-Car/Term-1/Project-5-Vehicle-Detection-and-Tracking/train-data/"
 counter = 0
@@ -137,14 +129,11 @@ else:
 #=============================================================================
 def check_accuracy():
     
-    print("check accuracy")
-    
+    print("check accuracy")    
     print('Test Accuracy of SVC = ', clf.score(X_test, y_test))
-    #print('My SVC predicts: ', svc.predict(X_test[0:10].reshape(1, -1)))
-    #print('For labels: ', y_test[0:10])
-    
     print("check_accuracy done")
 
+check_accuracy()
 #=============================================================================    
 def smoke_test():    
     # do some predictions
@@ -184,9 +173,14 @@ def predict(img):
 #=============================================================================
 # this method processes one image
 
-def process_image(img): 
+def process_image(img, debug): 
     
     print("max value: " + str(np.amax(img) )) 
+    
+    if debug['debug'] == 1:
+        debug['id'] = "1-original-"
+        debug['text'] = "original"
+        util.save_image_debug(img, debug)
     
 #    if np.amax(img) > 1:
 #        img = img / 255
@@ -194,7 +188,7 @@ def process_image(img):
     sliding_sale = [64, 128, 256]
     boxlist = []
     heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
-    heatmap_threshold = 0
+    heatmap_threshold = 2
     counter = 0
     
     for s in sliding_sale:
@@ -217,12 +211,32 @@ def process_image(img):
 #        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
         heatmap[b[1]:b[3], b[0]:b[2]] += 1
                
+    if debug['debug'] == 1:
+        debug['id'] = "2-all boxes -"
+        debug['text'] = "all boxes"
+        all_img = img.copy()
+        all_boxes = ip.draw_labeled_bboxes(all_img, heatmap)
+        util.save_image_debug(all_boxes, debug)
+        
+    if debug['debug'] == 1:
+        debug['id'] = "3-heatmap -"
+        debug['text'] = "heatmap"
+        util.save_image_debug(heatmap, debug)
+        
     heatmap[heatmap <= heatmap_threshold] = 0
+           
+    if debug['debug'] == 1:
+        debug['id'] = "4-threshold heatmap -"
+        debug['text'] = "threshold heatmap"
+        util.save_image_debug(heatmap, debug)
           
     res_image = ip.draw_labeled_bboxes(img, heatmap)
     
-#    cv2.imwrite('result_output.jpg',res_image)
-#    util.show_image_from_image(res_image, "output")
+    
+    if debug['debug'] == 1:
+        debug['id'] = "5-final result -"
+        debug['text'] = "final result"
+        util.save_image_debug(res_image, debug)
     
     return res_image
 
@@ -232,16 +246,11 @@ def process_image(img):
 # this method processes one image
 #==============================================================================
 def process_video(img): 
-    
-#    print("max value: " + str(np.amax(img) )) 
-    
-#    if np.amax(img) > 1:
-#        img = img / 255
-    
-    sliding_sale = [64, 128, 256]
+        
+    sliding_sale = [64, 96, 128, 192, 256]
     boxlist = []
     heatmap = np.zeros_like(img[:,:,0]).astype(np.float)
-    heatmap_threshold = 12  #because we measure across several images
+    heatmap_threshold = 18  #because we measure across several images
     counter = 0
     
     for s in sliding_sale:
@@ -278,11 +287,12 @@ def process_video(img):
 #    util.show_image_from_image(res_image, "output")
     
     return res_image
+
 #==============================================================================
 # we create something like a queue to store heatmaps across several images
 
 boxlists = []
-boxlist_length = 6
+boxlist_length = 6 # how many images we include 
 
 def insert_boxlist(b):
     global boxlists

@@ -4,6 +4,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
+import pylab as pl
 
 #=============================================================================
 
@@ -16,11 +17,17 @@ def show_image(file_path, text):
     
 def show_image_from_image(image, text):
     
-    
-    
     plt.imshow(image)  
     plt.title(text)
     plt.show()    
+    
+#=============================================================================
+def save_image_debug(img, debug):
+    
+    path_full = debug['path'] + str(debug['counter']) + debug['id'] +  debug['ending']
+    plt.imshow(img)  
+    plt.title(debug['text'])
+    pl.savefig(path_full)    
     
 #=============================================================================
 
