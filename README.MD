@@ -18,7 +18,7 @@ The program is structured in 3 terms. Here is the content of the program
 
 Term 1 is completely developed in Python, whereas Term 2 is done in C++. Python libraries and frameworks used: 
 
-- OpenCV (calibrating, distortion, various color spaces, sliding windows, Hough transform)
+- OpenCV (calibrating, distortion, various color spaces, sliding windows, Hough transform, Histogram of Oriented Gradients (HOG))
 - TensorFlow convolutional neural networks
 - Keras, a framework that sits on top of TensorFlow
 - NumPy
