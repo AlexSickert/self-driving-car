@@ -68,7 +68,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             /**
             Convert radar from polar to cartesian coordinates and initialize state.
              */
-
+            cout << "first measurement timestamp: " << measurement_pack.timestamp_ << endl;
             cout << "first measurement ro: " << measurement_pack.raw_measurements_(0) << endl;
             cout << "first measurement phi: " << measurement_pack.raw_measurements_(1) << endl;
             cout << "first measurement ro_dot: " << measurement_pack.raw_measurements_(2) << endl;
@@ -79,6 +79,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
              */
 
             //            x, y << measurement_pack.raw_measurements_;
+            cout << "first measurement timestamp: " << measurement_pack.timestamp_ << endl;
             cout << "first measurement x: " << measurement_pack.raw_measurements_(0) << endl;
             cout << "first measurement y: " << measurement_pack.raw_measurements_(1) << endl;
 
