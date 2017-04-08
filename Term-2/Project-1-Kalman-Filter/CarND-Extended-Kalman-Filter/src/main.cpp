@@ -13,6 +13,8 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
+
+
 void check_arguments(int argc, char* argv[]) {
 
     cout << "check_arguments: START OF PROGRAM" << endl;
@@ -70,10 +72,17 @@ int main(int argc, char* argv[]) {
     vector<GroundTruthPackage> gt_pack_list;
 
     string line;
+    
+    
 
     // prep the measurement packages (each line represents a measurement at a
     // timestamp)
+    
+    int i = 0;
+    
     while (getline(in_file_, line)) {
+        i += 1;
+//        cout << "reading line " << i << endl;
 
         string sensor_type;
         MeasurementPackage meas_package;
@@ -138,9 +147,13 @@ int main(int argc, char* argv[]) {
 
     //Call the EKF-based fusion
     size_t N = measurement_pack_list.size();
+    
+    cout << "size is " << N << endl;
+    
     for (size_t k = 0; k < N; ++k) {
         // start filtering from the second frame (the speed is unknown in the first
         // frame)
+        cout << "processing measurement " << k << endl;
         fusionEKF.ProcessMeasurement(measurement_pack_list[k]);
 
         // output the estimation
