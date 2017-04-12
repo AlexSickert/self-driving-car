@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     for (size_t k = 0; k < N; ++k) {
         // start filtering from the second frame (the speed is unknown in the first
         // frame)
-        cout << "processing measurement " << k << endl;
+        cout << "--------- start ------------- " << k << endl;
         fusionEKF.ProcessMeasurement(measurement_pack_list[k]);
 
         // output the estimation
@@ -183,7 +183,10 @@ int main(int argc, char* argv[]) {
 
         estimations.push_back(fusionEKF.ekf_.x_);
         ground_truth.push_back(gt_pack_list[k].gt_values_);
+        cout << "--------- end  ------------- " << k << endl;
     }
+    
+    cout << "=======================================================" << endl;
 
     // compute the accuracy (RMSE)
     Tools tools;

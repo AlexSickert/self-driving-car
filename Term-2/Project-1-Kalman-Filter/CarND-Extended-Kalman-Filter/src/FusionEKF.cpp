@@ -36,10 +36,10 @@ FusionEKF::FusionEKF() {
      * Finish initializing the FusionEKF.
      * Set the process and measurement noises
      */
-    
-    
-//    KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
-//        MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
+
+
+    //    KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
+    //        MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
 
 
 }
@@ -57,6 +57,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      *  Initialization
      ****************************************************************************/
     if (!is_initialized_) {
+        cout << "NOT initialized" << endl;
         /**
         TODO:
          * Initialize the state ekf_.x_ with the first measurement.
@@ -66,12 +67,36 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
         // first measurement
         cout << "EKF: " << endl;
         ekf_.x_ = VectorXd(4);
-        ekf_.x_ << 1, 1, 1, 1;
+        //        ekf_.x_ << 1, 1, 1, 1;
+
+        ekf_.P_ = MatrixXd(4, 4);
+        ekf_.P_ << 1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1000, 0,
+                0, 0, 0, 1000;
+
+        ekf_.R_ = MatrixXd(2, 2);
+        ekf_.R_ << 0.0225, 0,
+                0, 0.0225;
+
+        ekf_.H_ = MatrixXd(2, 4);
+        ekf_.H_ << 1, 0, 0, 0,
+                0, 1, 0, 0;
+
+        ekf_.F_ = MatrixXd(4, 4);
+        ekf_.F_ << 1, 0, 1, 0,
+                0, 1, 0, 1,
+                0, 0, 1, 0,
+                0, 0, 0, 1;
+
+
+        previous_timestamp_ = measurement_pack.timestamp_;
 
         if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
             /**
             Convert radar from polar to cartesian coordinates and initialize state.
              */
+            cout << "initialize with radar" << endl;
             cout << "first measurement timestamp: " << measurement_pack.timestamp_ << endl;
             cout << "first measurement ro: " << measurement_pack.raw_measurements_(0) << endl;
             cout << "first measurement phi: " << measurement_pack.raw_measurements_(1) << endl;
@@ -83,11 +108,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
              */
 
             //            x, y << measurement_pack.raw_measurements_;
+            cout << "initialize with laser" << endl;
             cout << "first measurement timestamp: " << measurement_pack.timestamp_ << endl;
-            cout << "first measurement x: " << measurement_pack.raw_measurements_(0) << endl;
-            cout << "first measurement y: " << measurement_pack.raw_measurements_(1) << endl;
+            cout << "first measurement x: " << measurement_pack.raw_measurements_[0] << endl;
+            cout << "first measurement y: " << measurement_pack.raw_measurements_[1] << endl;
+
+            ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 1, 1;
 
         }
+
+        cout << "initialization done" << endl;
 
         // done initializing, no need to predict or update
         is_initialized_ = true;
@@ -106,6 +136,24 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
      */
 
+    float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+    previous_timestamp_ = measurement_pack.timestamp_;
+    float dt_2 = dt * dt;
+    float dt_3 = dt_2 * dt;
+    float dt_4 = dt_3 * dt;
+
+    ekf_.F_(0, 2) = dt;
+    ekf_.F_(1, 3) = dt;
+
+    float noise_ax = 5;
+    float noise_ay = 5;
+
+    ekf_.Q_ = MatrixXd(4, 4);
+    ekf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0,
+            0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
+            dt_3 / 2 * noise_ax, 0, dt_2*noise_ax, 0,
+            0, dt_3 / 2 * noise_ay, 0, dt_2*noise_ay;
+
     ekf_.Predict();
 
     /*****************************************************************************
@@ -122,6 +170,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
         // Radar updates
     } else {
         // Laser updates
+        ekf_.Update(measurement_pack.raw_measurements_);
+        
     }
 
     // print the output

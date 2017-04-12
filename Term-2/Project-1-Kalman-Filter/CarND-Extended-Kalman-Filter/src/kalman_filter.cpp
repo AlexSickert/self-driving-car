@@ -30,12 +30,10 @@ void KalmanFilter::Predict() {
      * predict the state
      */
     
-
-    std::cout << "KalmanFilter::Predict()" << std::endl;
-    
-    std::cout << "F_" << F_ << std::endl;
-    std::cout << "P_" << P_ << std::endl;
-    std::cout << "Q_" << Q_ << std::endl;
+//    std::cout << "KalmanFilter::Predict()" << std::endl;
+//    std::cout << "F_" << F_ << std::endl;
+//    std::cout << "P_" << P_ << std::endl;
+//    std::cout << "Q_" << Q_ << std::endl;
 
     x_ = F_ * x_;
     MatrixXd Ft = F_.transpose();
