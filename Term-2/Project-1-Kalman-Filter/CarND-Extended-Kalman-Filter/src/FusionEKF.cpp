@@ -52,6 +52,8 @@ FusionEKF::~FusionEKF() {
 
 void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
+    const float PI = 3.1415927;
+
 
     /*****************************************************************************
      *  Initialization
@@ -102,6 +104,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             cout << "first measurement phi: " << measurement_pack.raw_measurements_(1) << endl;
             cout << "first measurement ro_dot: " << measurement_pack.raw_measurements_(2) << endl;
 
+            double rho = measurement_pack.raw_measurements_(0);
+            double phi = measurement_pack.raw_measurements_(1);
+            double rho_dot = measurement_pack.raw_measurements_(2);
+
+            double px = rho * cos(phi);
+            double py = rho * sin(phi);
+            double vx = 0;
+            double vy = 0;
+
+            ekf_.x_ << px, py, vx, vy;
+
         } else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
             /**
             Initialize state.
@@ -113,7 +126,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             cout << "first measurement x: " << measurement_pack.raw_measurements_[0] << endl;
             cout << "first measurement y: " << measurement_pack.raw_measurements_[1] << endl;
 
-            ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 1, 1;
+            float x = measurement_pack.raw_measurements_[0];
+            float y = measurement_pack.raw_measurements_[1];
+
+            if (x < 0.0000001) {
+                x = 0.0000001;
+            }
+
+            if (y < 0.0000001) {
+                y = 0.0000001;
+            }
+
+            ekf_.x_ << x, y, 0, 0;
 
         }
 
@@ -168,10 +192,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
         // Radar updates
+        ekf_.R_ = R_radar_;
+        ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+        ekf_.UpdateEKF(measurement_pack.raw_measurements_);
     } else {
         // Laser updates
+        ekf_.R_ = R_laser_;
+        ekf_.H_ = H_laser_;
         ekf_.Update(measurement_pack.raw_measurements_);
-        
     }
 
     // print the output

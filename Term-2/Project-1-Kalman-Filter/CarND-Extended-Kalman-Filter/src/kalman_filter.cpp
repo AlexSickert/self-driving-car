@@ -29,11 +29,11 @@ void KalmanFilter::Predict() {
     TODO:
      * predict the state
      */
-    
-//    std::cout << "KalmanFilter::Predict()" << std::endl;
-//    std::cout << "F_" << F_ << std::endl;
-//    std::cout << "P_" << P_ << std::endl;
-//    std::cout << "Q_" << Q_ << std::endl;
+
+    //    std::cout << "KalmanFilter::Predict()" << std::endl;
+    //    std::cout << "F_" << F_ << std::endl;
+    //    std::cout << "P_" << P_ << std::endl;
+    //    std::cout << "Q_" << Q_ << std::endl;
 
     x_ = F_ * x_;
     MatrixXd Ft = F_.transpose();
@@ -49,8 +49,7 @@ void KalmanFilter::Update(const VectorXd &z) {
      */
 
     std::cout << "KalmanFilter::Update()" << std::endl;
-    
-    
+
     VectorXd z_pred = H_ * x_;
     VectorXd y = z - z_pred;
     MatrixXd Ht = H_.transpose();
@@ -67,9 +66,118 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 }
 
+//void KalmanFilter::UpdateEKF(const VectorXd &z) {
+//    
+//    const float PI = 3.1415927;
+//    float PI2 = 2 * PI;
+//    /**
+//    TODO:
+//     * update the state by using Extended Kalman Filter equations
+//     */
+//    
+//    // z has in this case only 3 parameters and is radar !!! 
+//
+//    Tools tools;
+//
+//    std::cout << "EXTENDED KalmanFilter::Update()" << std::endl;
+//
+//
+//    float c1 = x_(0) * x_(0) + x_(1) * x_(1);
+//
+//
+//    //check division by zero
+//    if (std::fabs(c1) > 0.0001) {
+//
+//        MatrixXd Hj = tools.CalculateJacobian(x_);
+//        std::cout << "done 1" << std::endl;
+//        //        VectorXd z_pred = Hj * x_;
+//        std::cout << "done 1" << std::endl;
+//        VectorXd y = z - tools.CalculateHFunction(x_); // for this we need to use h instead of H
+//        
+//        // correct in for PI  
+//        
+//        if(y(1) > PI){
+//            y(1) = y(1) - PI2;
+//        }
+//        
+//        if(y(1) < -PI){
+//            y(1) = y(1) + PI2;
+//        }        
+//
+//
+//        std::cout << "done 2" << std::endl;
+//        MatrixXd Ht = Hj.transpose();
+//        std::cout << "done 3" << std::endl;
+//        std::cout << "-----------------------------------" <<  std::endl;
+//        std::cout << "Hj" << Hj << std::endl;
+//        std::cout << "-----------------------------------" <<  std::endl;        
+//        std::cout << "P_" << P_ << std::endl;
+//        std::cout << "-----------------------------------" <<  std::endl;
+//        std::cout << "Ht" << Ht << std::endl;
+//        std::cout << "-----------------------------------" <<  std::endl;
+//        std::cout << "R_" << R_ << std::endl;
+//        std::cout << "-----------------------------------" <<  std::endl;
+//
+//        MatrixXd S = Hj * P_ * Ht + R_;
+//
+//        std::cout << "done 4" << std::endl;
+//        MatrixXd Si = S.inverse();
+//        std::cout << "done 5" << std::endl;
+//        MatrixXd PHt = P_ * Ht;
+//        std::cout << "done 6" << std::endl;
+//        MatrixXd K = PHt * Si;
+//        std::cout << "done 7" << std::endl;
+//
+//        //new estimate
+//        x_ = x_ + (K * y); // use f instead of F
+//        long x_size = x_.size();
+//        MatrixXd I = MatrixXd::Identity(x_size, x_size);
+//        P_ = (I - K * Hj) * P_;
+//
+//    }
+//    
+//    
+//    
+//
+//
+//
+//
+//
+//}
+
+
+VectorXd KalmanFilter::CalculateZ_previous(const VectorXd &z) {
+  VectorXd z_pred;
+  if (z.size() == 2) {
+    z_pred = H_ * x_;
+  } else {
+    double px = x_(0);
+    double py = x_(1);
+    double vx = x_(2);
+    double vy = x_(3);
+  
+    double rho = sqrt(px*px + py*py);
+    double phi = atan2(py, px);
+    double rho_dot = (px*vx + py*vy)/rho;
+    z_pred = VectorXd(3);
+    z_pred << rho, phi, rho_dot;
+  }
+  return z_pred;
+}
+
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-    /**
-    TODO:
-     * update the state by using Extended Kalman Filter equations
-     */
+    
+    
+    VectorXd z_pred = CalculateZ_previous(z);
+    
+    
+    VectorXd y = z - z_pred;
+    MatrixXd Ht = H_.transpose();
+    MatrixXd S = H_ * P_ * Ht + R_;
+    MatrixXd K = P_ * Ht * S.inverse();
+
+    x_ = x_ + (K * y);
+    long x_size = x_.size();
+    MatrixXd I = MatrixXd::Identity(x_size, x_size);
+    P_ = (I - K * H_) * P_;
 }

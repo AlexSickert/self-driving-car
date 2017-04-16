@@ -14,7 +14,6 @@ using Eigen::VectorXd;
 using std::vector;
 
 
-
 void check_arguments(int argc, char* argv[]) {
 
     cout << "check_arguments: START OF PROGRAM" << endl;
@@ -153,7 +152,7 @@ int main(int argc, char* argv[]) {
     for (size_t k = 0; k < N; ++k) {
         // start filtering from the second frame (the speed is unknown in the first
         // frame)
-        cout << "--------- start ------------- " << k << endl;
+        cout << "--------- start line " << k << " --------------"<< endl;
         fusionEKF.ProcessMeasurement(measurement_pack_list[k]);
 
         // output the estimation
@@ -183,7 +182,7 @@ int main(int argc, char* argv[]) {
 
         estimations.push_back(fusionEKF.ekf_.x_);
         ground_truth.push_back(gt_pack_list[k].gt_values_);
-        cout << "--------- end  ------------- " << k << endl;
+        cout << "--------- end line " << k << " --------------"<< endl;
     }
     
     cout << "=======================================================" << endl;
@@ -191,6 +190,11 @@ int main(int argc, char* argv[]) {
     // compute the accuracy (RMSE)
     Tools tools;
     cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
+    
+    string rmse_file_name_ = "./rmse.txt";
+    ofstream rmse_file_(rmse_file_name_.c_str(), ofstream::out);
+    rmse_file_ << tools.CalculateRMSE(estimations, ground_truth) << "\n";
+    rmse_file_.close();
 
     // close files
     if (out_file_.is_open()) {
