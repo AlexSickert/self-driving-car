@@ -67,11 +67,11 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
     float vx = x_state(2);
     float vy = x_state(3);
 
-    std::cout << "CalculateJacobian ():" << std::endl;
-    std::cout << "px: " << px << std::endl;
-    std::cout << "py: " << py << std::endl;
-    std::cout << "vx: " << vx << std::endl;
-    std::cout << "vy: " << vy << std::endl;
+//    std::cout << "CalculateJacobian ():" << std::endl;
+//    std::cout << "px: " << px << std::endl;
+//    std::cout << "py: " << py << std::endl;
+//    std::cout << "vx: " << vx << std::endl;
+//    std::cout << "vy: " << vy << std::endl;
 
 
 
@@ -94,25 +94,4 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
     return Hj;
 }
 
-VectorXd Tools::CalculateHFunction(const VectorXd& x_state) {
 
-    VectorXd hf(3);
-    //recover state parameters
-    float px = x_state(0);
-    float py = x_state(1);
-    float vx = x_state(2);
-    float vy = x_state(3);
-
-    std::cout << "CalculateHFunction ():" << std::endl;
-    std::cout << "px: " << px << std::endl;
-    std::cout << "py: " << py << std::endl;
-    std::cout << "vx: " << vx << std::endl;
-    std::cout << "vy: " << vy << std::endl;
-
-    float v1 = sqrt(px * px + py * py);
-    float v2 = atan(py / px);
-    float v3 = (px * vx + py * vy) / v1;
-
-    hf << v1, v2, v3;
-    return hf;
-}
