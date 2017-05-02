@@ -25,7 +25,6 @@ public:
   */
   Eigen::MatrixXd CalculateJacobian(const Eigen::VectorXd& x_state);
   
-  Eigen::VectorXd CalculateHFunction(const Eigen::VectorXd& x_state);
 
 };
 
