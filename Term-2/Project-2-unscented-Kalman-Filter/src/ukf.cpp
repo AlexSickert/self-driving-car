@@ -28,10 +28,10 @@ UKF::UKF() {
     P_ = MatrixXd(5, 5);
 
     // Process noise standard deviation longitudinal acceleration in m/s^2
-    std_a_ = .63;
+    std_a_ = .6;  //  .63;
 
     // Process noise standard deviation yaw acceleration in rad/s^2
-    std_yawdd_ = 1.2;
+    std_yawdd_ = 1.2; // 1.2;
 
     // Laser measurement noise standard deviation position1 in m
     std_laspx_ = 0.0225;
@@ -40,13 +40,13 @@ UKF::UKF() {
     std_laspy_ = 0.0225;
 
     // Radar measurement noise standard deviation radius in m
-    std_radr_ = 0.9;
+    std_radr_ = 0.3; //0.9;
 
     // Radar measurement noise standard deviation angle in rad
-    std_radphi_ = 0.005;
+    std_radphi_ = 0.0175; // 0.005;
 
     // Radar measurement noise standard deviation radius change in m/s
-    std_radrd_ = 0.5;
+    std_radrd_ = 0.1; // 0.5;
 
     /**
     TODO:
@@ -63,9 +63,6 @@ UKF::UKF() {
     n_aug_ = n_x_ + 2;
     lambda_ = 3 - n_x_;
 
-    NIS_radar_ = 0.5;
-    NIS_laser_ = 0.5;
-
     Q_ = MatrixXd(2, 2);
     Q_ << std_a_ * std_a_, 0,
             0, std_yawdd_ * std_yawdd_;
@@ -74,8 +71,8 @@ UKF::UKF() {
     P_ = MatrixXd(5, 5);
     P_ << 1, 0, 0, 0, 0,
             0, 1, 0, 0, 0,
-            0, 0, 1000, 0, 0,
-            0, 0, 0, 100, 0,
+            0, 0, 70, 0, 0,
+            0, 0, 0, 10, 0,
             0, 0, 0, 0, 1;
 
     n_z_radar_ = 3;
@@ -149,7 +146,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
         x_ << px, py, 0, 0, 0;
         x_aug_ = VectorXd(7);
 
-        previous_timestamp_ = meas_package.timestamp_;
+//        previous_timestamp_ = meas_package.timestamp_;
         is_initialized_ = true;
 
         std::cout << "initialization done" << std::endl;
@@ -185,7 +182,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 void UKF::Prediction(double delta_t) {
 
     cout << "UKF::Prediction " << endl;
-
 
     MatrixXd Xsig = MatrixXd(11, 5);
 
