@@ -28,25 +28,27 @@ UKF::UKF() {
     P_ = MatrixXd(5, 5);
 
     // Process noise standard deviation longitudinal acceleration in m/s^2
-    std_a_ = .6;  //  .63;
+    std_a_ = .6; //  .63;
 
     // Process noise standard deviation yaw acceleration in rad/s^2
     std_yawdd_ = 1.2; // 1.2;
 
     // Laser measurement noise standard deviation position1 in m
-    std_laspx_ = 0.0225;
+    std_laspx_ = 0.15;
+    std_laspx_sq_ = std_laspx_ * std_laspx_;
 
     // Laser measurement noise standard deviation position2 in m
-    std_laspy_ = 0.0225;
+    std_laspy_ = 0.15;
+    std_laspy_sq_ = std_laspy_ * std_laspy_;
 
     // Radar measurement noise standard deviation radius in m
     std_radr_ = 0.3; //0.9;
 
     // Radar measurement noise standard deviation angle in rad
-    std_radphi_ = 0.0175; // 0.005;
+    std_radphi_ = 0.03; // 0.005;
 
     // Radar measurement noise standard deviation radius change in m/s
-    std_radrd_ = 0.1; // 0.5;
+    std_radrd_ = 0.3; // 0.5;
 
     /**
     TODO:
@@ -71,7 +73,7 @@ UKF::UKF() {
     P_ = MatrixXd(5, 5);
     P_ << 1, 0, 0, 0, 0,
             0, 1, 0, 0, 0,
-            0, 0, 70, 0, 0,
+            0, 0, 100, 0, 0,
             0, 0, 0, 10, 0,
             0, 0, 0, 0, 1;
 
@@ -92,9 +94,11 @@ UKF::UKF() {
             0, 1, 0, 0, 0;
 
     R_laser_ = MatrixXd(2, 2);
-    R_laser_ << std_laspx_, 0,
-            0, std_laspy_;
 
+    R_laser_ << std_laspx_sq_, 0,
+            0, std_laspy_sq_;
+
+    lambda_n_aug_ = sqrt(lambda_ + n_aug_);
 
 }
 
@@ -146,7 +150,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
         x_ << px, py, 0, 0, 0;
         x_aug_ = VectorXd(7);
 
-//        previous_timestamp_ = meas_package.timestamp_;
         is_initialized_ = true;
 
         std::cout << "initialization done" << std::endl;
@@ -158,16 +161,16 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     time_us_ = meas_package.timestamp_;
 
 
-    this->Prediction(dt_);
+    Prediction(dt_);
 
     std::cout << "prediction done" << std::endl;
 
     if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
         cout << "Laser" << endl;
-        this->UpdateLidar(meas_package);
+        UpdateLidar(meas_package);
     } else if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
         cout << "Radar" << endl;
-        this->UpdateRadar(meas_package);
+        UpdateRadar(meas_package);
     }
 
     std::cout << "update done" << std::endl;
@@ -183,17 +186,13 @@ void UKF::Prediction(double delta_t) {
 
     cout << "UKF::Prediction " << endl;
 
-    MatrixXd Xsig = MatrixXd(11, 5);
-
-    this->GenerateSigmaPoints(&Xsig);
-
     MatrixXd Xsig_out = MatrixXd(11, 5);
 
-    this->AugmentedSigmaPoints(&Xsig_out);
+    AugmentedSigmaPoints(&Xsig_out);
 
-    this->SigmaPointPrediction(&Xsig_out);
+    SigmaPointPrediction(&Xsig_out);
 
-    this->PredictMeanAndCovariance(&x_, &P_, &Xsig_out);
+    PredictMeanAndCovariance(&x_, &P_, &Xsig_out);
 
 }
 
@@ -236,6 +235,17 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
         double p_x = Xsig_pred_(0, i);
         double p_y = Xsig_pred_(1, i);
+
+
+        if (p_x < 0.001) {
+            p_x = 0.001;
+        }
+
+        if (p_y < 0.001) {
+            p_y = 0.001;
+        }
+
+
         double v = Xsig_pred_(2, i);
         double yaw = Xsig_pred_(3, i);
 
@@ -246,15 +256,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
         double phi = atan2(p_y, p_x);
         double rho_dot = (p_x * v_y + p_y * v_x) / rho;
 
-        if (rho != rho) {
-            rho = 0;
-        }
-        if (phi != phi) {
-            phi = 0;
-        }
-        if (rho_dot != rho_dot) {
-            rho_dot = 0;
-        }
+      
 
         Zsig_(0, i) = rho;
         Zsig_(1, i) = phi;
@@ -321,32 +323,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
 }
 
-void UKF::GenerateSigmaPoints(MatrixXd* Xsig_out) {
 
-    std::cout << "UKF::GenerateSigmaPoints" << std::endl;
-
-    //create sigma point matrix
-    MatrixXd Xsig = MatrixXd(n_x_, 2 * n_x_ + 1);
-
-    //calculate square root of P
-    MatrixXd A = P_.llt().matrixL();
-
-   
-    Xsig.col(0) = x_;
-
-    //set remaining sigma points
-    for (int i = 0; i < n_x_; i++) {
-        Xsig.col(i + 1) = x_ + sqrt(lambda_ + n_x_) * A.col(i);
-        Xsig.col(i + 1 + n_x_) = x_ - sqrt(lambda_ + n_x_) * A.col(i);
-    }
-
-    //print result
-    std::cout << "Xsig = " << std::endl << Xsig << std::endl;
-
-    //write result
-    *Xsig_out = Xsig;
-
-}
 
 void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) {
 
@@ -361,7 +338,7 @@ void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) {
     //create sigma point matrix
     MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
-   
+
 
     //create augmented mean state
     x_aug.head(5) = x_;
@@ -379,12 +356,14 @@ void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) {
 
     //create augmented sigma points
     Xsig_aug.col(0) = x_aug;
+    
+    
+    
     for (int i = 0; i < n_aug_; i++) {
-        Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * L.col(i);
-        Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * L.col(i);
+        Xsig_aug.col(i + 1) = x_aug + lambda_n_aug_ * L.col(i);
+        Xsig_aug.col(i + 1 + n_aug_) = x_aug - lambda_n_aug_ * L.col(i);
     }
 
-   
 
     //print result
     std::cout << "Xsig_aug = " << std::endl << Xsig_aug << std::endl;
@@ -399,7 +378,7 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_augX) {
     MatrixXd Xsig_aug = *Xsig_augX;
 
     MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
-    
+
     std::cout << "Xsig_aug = " << std::endl << Xsig_aug << std::endl;
 
     //predict sigma points
@@ -411,9 +390,9 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_augX) {
         double v = Xsig_aug(2, i);
         double yaw = Xsig_aug(3, i);
         double yawd = Xsig_aug(4, i);
-      
+
         double nu_a = Xsig_aug(5, i);
-      
+
         double nu_yawdd = Xsig_aug(6, i);
 
         //predicted state values
@@ -497,8 +476,6 @@ void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out, MatrixXd* X
 
         P = P + weights(i) * x_diff * x_diff.transpose();
     }
-
-
 
     //print result
     std::cout << "Predicted state" << std::endl;
