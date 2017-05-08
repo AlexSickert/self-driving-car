@@ -43,9 +43,12 @@ public:
 
     ///* Laser measurement noise standard deviation position1 in m
     double std_laspx_;
+    double std_laspx_sq_;
+    
 
     ///* Laser measurement noise standard deviation position2 in m
     double std_laspy_;
+    double std_laspy_sq_;
 
     ///* Radar measurement noise standard deviation radius in m
     double std_radr_;
@@ -82,11 +85,12 @@ public:
     MatrixXd H_laser_;
     MatrixXd R_laser_;
     VectorXd x_aug_;
-    long previous_timestamp_;
 
     MatrixXd R_radar_;
     
     MatrixXd Q_;
+    
+    double lambda_n_aug_;
 
 
     /**
@@ -124,7 +128,7 @@ public:
      */
     void UpdateRadar(MeasurementPackage meas_package);
 
-    void GenerateSigmaPoints(MatrixXd* Xsig_out);
+//    void GenerateSigmaPoints(MatrixXd* Xsig_out);
 
     void AugmentedSigmaPoints(MatrixXd* Xsig_out);
 
@@ -132,7 +136,6 @@ public:
 
     void PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out, MatrixXd* Xsig_pred);
 
-//    void PredictRadarMeasurement(VectorXd* z_out, MatrixXd* S_out);
 
     void UpdateState(VectorXd* x_out, MatrixXd* P_out);
 
