@@ -8,6 +8,7 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
+#include <cppad/cppad.hpp>
 
 // for convenience
 using json = nlohmann::json;
@@ -77,6 +78,10 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
 }
 
 
+/*
+ * For more detailed explanations please read the README file here:
+ * https://github.com/AlexSickert/Udacity-SDC-T2-P5/blob/master/README.md 
+ */
 
 int main() {
     uWS::Hub h;
@@ -89,7 +94,7 @@ int main() {
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
         string sdata = string(data).substr(0, length);
-        cout << sdata << endl;
+//        cout << sdata << endl;
         if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
             string s = hasData(sdata);
             if (s != "") {
@@ -103,25 +108,47 @@ int main() {
                     double psi = j[1]["psi"];
                     double v = j[1]["speed"];
 
-                    std::cout << "------------------------------" << std::endl;
+//                    std::cout << "------------------------------" << std::endl;
+                    
+                    
+                    /*
+                     * For more detailed explanations please read the README file here:
+                     * https://github.com/AlexSickert/Udacity-SDC-T2-P5/blob/master/README.md 
+                     */
+                    
+                    /*
+                     * we want to handle latency and for doing that we create a
+                     * prediction where the car will be in 100ms as our latency 
+                     * is 100 ms
+                     */
 
-                    std::cout << "ptsx:";
-
-                    for (int i = 0; i < ptsx.size(); ++i) {
-                        std::cout << ptsx[i] << ' ';
-                    }
-                    std::cout << std::endl;
-
-                    std::cout << "ptsy: ";
-                    for (int i = 0; i < ptsy.size(); ++i) {
-                        std::cout << ptsy[i] << ' ';
-                    }
-                    std::cout << std::endl;
-
-                    std::cout << "px: " << px << std::endl;
-                    std::cout << "py: " << py << std::endl;
-                    std::cout << "psi: " << psi << std::endl;
-                    std::cout << "v: " << v << std::endl;
+                    double dt = 0.1; // tried 0.15 but no improvement
+                    double Lf = 2.67;
+                    
+                    px = px + v * CppAD::cos(psi) * dt;
+                    py = py + v * CppAD::sin(psi) * dt;
+                    psi = psi + v / Lf * 0 * dt; // i left this constant
+                    v = v + 0 * dt; // I left this constant
+                    
+                    
+//                    
+//                    std::cout << "ptsx:";
+//
+//                    for (int i = 0; i < ptsx.size(); ++i) {
+//                        std::cout << ptsx[i] << ' ';
+//                    }
+//                    std::cout << std::endl;
+//
+//                    std::cout << "ptsy: ";
+//                    for (int i = 0; i < ptsy.size(); ++i) {
+//                        std::cout << ptsy[i] << ' ';
+//                    }
+//                    std::cout << std::endl;
+//
+//                    std::cout << "px: " << px << std::endl;
+//                    std::cout << "py: " << py << std::endl;
+//                    std::cout << "psi: " << psi << std::endl;
+//                    std::cout << "v: " << v << std::endl;
 
 
                     /*
@@ -142,6 +169,12 @@ int main() {
                     
                     local_ptsx.resize(ptsx.size());
                     local_ptsy.resize(ptsx.size());
+                    
+                    
+                    /*
+                     * For more detailed explanations please read the README file here:
+                     * https://github.com/AlexSickert/Udacity-SDC-T2-P5/blob/master/README.md 
+                     */
                     
                     /*
                      * We convert the postitions from the coordinate system of
@@ -166,7 +199,8 @@ int main() {
                     throttle_value = 0.1;                    
                     
 //                    auto coeffs = polyfit(local_ptsx,local_ptsy , 3);
-                    auto coeffs = polyfit(local_ptsx,local_ptsy , 3);
+//                    auto coeffs = polyfit(local_ptsx,local_ptsy , 3);
+                    auto coeffs = polyfit(local_ptsx,local_ptsy , 4);
                     
                     //calculate cross track error at current position of the car
                     double cte = polyeval(coeffs, px) - py;
@@ -177,38 +211,29 @@ int main() {
 //                    state << px, py, psi, v, cte, epsi;
                     state << 0, 0, 0, v, cte, epsi;
 
-                    std::vector<double> x_vals = {state[0]};
-                    std::vector<double> y_vals = {state[1]};
-                    std::vector<double> psi_vals = {state[2]};
-                    std::vector<double> v_vals = {state[3]};
-                    std::vector<double> cte_vals = {state[4]};
-                    std::vector<double> epsi_vals = {state[5]};
-                    std::vector<double> delta_vals = {};
-                    std::vector<double> a_vals = {};
-                    
-                    std::cout << " now solving  " << std::endl;
+
                     
                     auto vars = mpc.Solve(state, coeffs);
-                    
-                    std::cout << "vars: ";
-                    for (size_t i = 0; i < vars.size(); i++) {
-                        std::cout << i << std::endl;                      
-                        std::cout << vars[i] << std::endl;                       
-                    }
-                    
+//                    
+//                    std::cout << "vars: ";
+//                    for (size_t i = 0; i < vars.size(); i++) {
+//                        std::cout << i << std::endl;                      
+//                        std::cout << vars[i] << std::endl;                       
+//                    }
+//                    
                     
                     double new_steering;
                     
                     new_steering = -vars[6] / deg2rad(25) ;
                     
-                    std::cout << "new_steering ";
-                    std::cout << new_steering<< std::endl;
+//                    std::cout << "new_steering ";
+//                    std::cout << new_steering<< std::endl;
                     msgJson["steering_angle"] = new_steering;
                     
                     
                     throttle_value = vars[7];
-                    std::cout << "throttle_value ";
-                    std::cout << throttle_value << std::endl;
+//                    std::cout << "throttle_value ";
+//                    std::cout << throttle_value << std::endl;
                     msgJson["throttle"] = throttle_value;
 //                    msgJson["throttle"] = 0.1;
 
@@ -217,6 +242,11 @@ int main() {
                     vector<double> mpc_y_vals;
 
 
+                    
+                    /*
+                     * For more detailed explanations please read the README file here:
+                     * https://github.com/AlexSickert/Udacity-SDC-T2-P5/blob/master/README.md 
+                     */
 
                     /*
                      * drawing the green line which shows the polynomial
@@ -259,7 +289,7 @@ int main() {
 
 
                     auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-                    std::cout << msg << std::endl;
+//                    std::cout << msg << std::endl;
                     // Latency
                     // The purpose is to mimic real driving conditions where
                     // the car does actuate the commands instantly.
